@@ -1,0 +1,27 @@
+USE MyDb;
+
+-- (1) 为表 Staff 添加主键
+ALTER TABLE Staff
+  ADD CONSTRAINT PK_Staff_staffNo PRIMARY KEY (staffNo);
+
+-- (2) 为表 Dept.mgrStaffNo 添加外键 FK_Dept_mgrStaffNo，引用 Staff.staffNo
+ALTER TABLE Dept
+  ADD CONSTRAINT FK_Dept_mgrStaffNo
+    FOREIGN KEY (mgrStaffNo)
+    REFERENCES Staff(staffNo);
+
+-- (3) 为表 Staff.dept 添加外键 FK_Staff_dept，引用 Dept.deptNo
+ALTER TABLE Staff
+  ADD CONSTRAINT FK_Staff_dept
+    FOREIGN KEY (dept)
+    REFERENCES Dept(deptNo);
+
+-- (4) 为表 Staff 添加 CHECK 约束 CK_Staff_gender：gender 只能为 'F' 或 'M'
+ALTER TABLE Staff
+  ADD CONSTRAINT CK_Staff_gender
+    CHECK (gender IN ('F','M'));
+
+-- (5) 为表 Dept 添加 UNIQUE 约束 UN_Dept_deptName：deptName 不允许重复
+ALTER TABLE Dept
+  ADD CONSTRAINT UN_Dept_deptName
+    UNIQUE (deptName);

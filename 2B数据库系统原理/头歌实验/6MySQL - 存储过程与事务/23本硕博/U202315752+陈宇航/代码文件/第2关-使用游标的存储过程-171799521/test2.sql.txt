@@ -1,0 +1,60 @@
+delimiter $$
+create procedure sp_night_shift_arrange(in start_date date, in end_date date)
+begin
+    DECLARE done, prodir INT DEFAULT FALSE; -- 定义用于循环控制的标志变量 pro 表示主任要不要在工作日直接上
+    DECLARE nowdate DATE; -- 定义当前处理的日期变量
+    DECLARE prodr, dr, nr1, nr2 CHAR(30); -- 定义周一主任待命医生、白天医生和两位夜班护士的变量
+    DECLARE drtype INT; -- 定义医生类型变量
+    DECLARE drlist CURSOR FOR SELECT e_name, e_type FROM employee WHERE e_type < 3; -- 医生列表游标，选择医生名字和类型小于3的医生
+    DECLARE nrlist CURSOR FOR SELECT e_name FROM employee WHERE e_type = 3; -- 护士列表游标，选择类型为3的护士
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE; -- 当游标没有更多行时，设置标志变量 done 为 TRUE
+
+    OPEN drlist; -- 打开医生列表游标
+    OPEN nrlist; -- 打开护士列表游标
+    SET nowdate = start_date; -- 设置当前日期为开始日期
+
+    WHILE nowdate <= end_date DO -- 循环处理从开始日期到结束日期的每一天
+        IF weekday(nowdate) < 5 AND prodir THEN -- 如果当前日期是工作日并且有待命医生
+            SET dr = prodr, prodir = FALSE; -- 将待命医生指派为当前夜班医生，并清除待命状态
+        ELSE
+            FETCH drlist INTO dr, drtype; -- 从医生列表中获取下一个医生
+            IF done THEN -- 如果没有更多医生可用
+                CLOSE drlist; -- 关闭医生列表游标
+                OPEN drlist; -- 重新打开医生列表游标
+                FETCH drlist INTO dr, drtype; -- 再次尝试获取医生
+                SET done = FALSE; -- 重置 done 标志
+            END IF;
+            IF weekday(nowdate) >= 5 AND drtype = 1 THEN -- 如果当前日期是周末并且医生是类型为1的大夜班医生
+                SET prodir = TRUE, prodr = dr; -- 设置待命状态，并记录待命医生
+                FETCH drlist INTO dr, drtype; -- 获取下一个医生
+                IF done THEN -- 如果没有更多医生可用
+                    CLOSE drlist; -- 关闭医生列表游标
+                    OPEN drlist; -- 重新打开医生列表游标
+                    FETCH drlist INTO dr, drtype; -- 再次尝试获取医生
+                    SET done = FALSE; -- 重置 done 标志
+                END IF;
+            END IF;
+        END IF;
+
+        FETCH nrlist INTO nr1; -- 从护士列表中获取第一位护士
+        IF done THEN 
+            CLOSE nrlist; -- 关闭护士列表游标
+            OPEN nrlist; -- 重新打开护士列表游标
+            FETCH nrlist INTO nr1; -- 再次尝试获取护士
+            SET done = FALSE; -- 重置 done 标志
+        END IF;
+
+        FETCH nrlist INTO nr2; -- 从护士列表中获取第二位护士
+        IF done THEN 
+            CLOSE nrlist; -- 关闭护士列表游标
+            OPEN nrlist; -- 重新打开护士列表游标
+            FETCH nrlist INTO nr2; -- 再次尝试获取护士
+            SET done = FALSE; -- 重置 done 标志
+        END IF;
+
+        INSERT INTO night_shift_schedule VALUES (nowdate, dr, nr1, nr2); -- 将当前日期、医生和护士信息插入夜班值班表
+        SET nowdate = DATE_ADD(nowdate, INTERVAL 1 DAY); -- 将当前日期增加一天
+    END WHILE; -- 结束循环
+end$$
+
+delimiter ;
