@@ -9,9 +9,13 @@ git add -u    # 暂存已跟踪过的文件，忽略新建文件
 git add -u path/  # 仅限于该path目录下
 
 # 暂存查看和对比
-git status   # 展示个数：1change&add 2change未add 3newbuilt
-git diff  # 展示具体（暂存vs工作区） : change未add
-git diff --cached  # 暂存vs上次commit的具体改动: change&add
+git status   # 1提交历史  2stage  3workplace
+git diff  # 展示具体（暂存vs工作区） : 已change未add的
+git diff --cached  # 展示具体（暂存vs上次commit）: 已add未push的
+
+# 增加flag：
+git diff --cached --name-status 
+git diff --cached --compact-summary
 
 
 2. commit保存到本地
@@ -20,10 +24,15 @@ git diff --cached  # 暂存vs上次commit的具体改动: change&add
 
 # commit指令
 git commit -m "message"  # 暂存区所有内容进行快照，存入本地
+git commit -a -m "message"  # add后commit前又修改：用-a 等价于补充自动执行 git add -u，先把所有已追踪文件的改动add到stage
 
 # commit查看
 git log --oneline  # 所有提交记录
 git log origin/main..main --oneline  # 已commit未push -- 对应GUI的「outgoing changed」
+
+# commit对比
+git show --name-only HEAD   # 列出commit的文件名; ps:HEAD指代当前版本
+git show --name-status HEAD  # 文件+改动类型[A新增/M修改/D删除/R100重命名或改路径+相似度]
 
 ps:
 A..B 的含义：存在于 B、但不存在于 A 的所有提交;
