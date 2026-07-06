@@ -1,0 +1,14 @@
+-- 查询在六安下车的人员信息：编号，身份证号码，姓名，性别，出生日期。依编号排序。
+-- 请用一条SQL语句实现该查询：
+
+
+SELECT DISTINCT p.pid, p.card_no, p.pname, p.gender, p.dob
+FROM passenger p
+JOIN ride_record r ON p.pid = r.pid
+WHERE r.dest = '六安'
+ORDER BY p.pid;
+
+
+
+
+/*  end  of  your code  */

@@ -1,0 +1,17 @@
+-- 查询2023年国庆小长假期间(2023-9-29至2023-10-6)乘坐火车出行的人次，标题：人，次。
+-- 请用一条SQL语句实现该查询：
+
+
+
+
+SELECT COUNT(DISTINCT pid) AS 人, COUNT(*) AS 次
+FROM ride_record
+WHERE rdate BETWEEN '2023-09-29' AND '2023-10-06';
+
+
+
+
+
+
+
+/*  end  of  your code  */ 

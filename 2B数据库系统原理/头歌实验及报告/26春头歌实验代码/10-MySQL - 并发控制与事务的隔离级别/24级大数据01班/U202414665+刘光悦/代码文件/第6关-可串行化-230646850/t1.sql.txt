@@ -1,0 +1,13 @@
+/*
+任务：
+事务t1两次查询航班MU2455的余票，事务t2修改航班MU2455的余票(减1)。请对两个代码文件进行修改，使得两个事务并发执行的结果与t2→t1串行执行的结果相同。
+*/
+-- 事务1:
+use testdb1;
+start transaction;
+set @n = sleep(1);
+select tickets from ticket where flight_no = 'MU2455';
+select tickets from ticket where flight_no = 'MU2455';
+commit;
+
+

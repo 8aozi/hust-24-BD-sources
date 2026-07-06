@@ -1,0 +1,30 @@
+SELECT 
+    CASE first_letter
+        WHEN 'G' THEN '高速动车组旅客列车'
+        WHEN 'C' THEN '城际动车组旅客列车'
+        WHEN 'D' THEN '动车组旅客列车'
+        WHEN 'Z' THEN '直达特快旅客列车'
+        WHEN 'T' THEN '特快旅客列车'
+        WHEN 'K' THEN '快速旅客列车'
+        WHEN 'L' THEN '临时旅客列车'
+        WHEN 'Y' THEN '旅游列车'
+        ELSE '其他'
+    END AS 列车类别,
+    COUNT(*) AS 车次数
+FROM (
+    SELECT SUBSTRING(train_no, 1, 1) AS first_letter
+    FROM route
+) AS t
+GROUP BY first_letter
+ORDER BY 
+    CASE first_letter
+        WHEN 'D' THEN 1
+        WHEN 'G' THEN 8
+        WHEN 'C' THEN 3
+        WHEN 'K' THEN 4
+        WHEN 'T' THEN 5
+        WHEN 'Z' THEN 6
+        WHEN 'L' THEN 7
+        WHEN 'Y' THEN 2
+        ELSE 9
+    END;

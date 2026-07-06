@@ -1,0 +1,30 @@
+SELECT 
+    t1_wuhan.train_no AS train1,
+    '武汉' AS start,
+    t1_wuhan.departure_time AS depart,
+    t1_trans.station_name AS transfer,
+    t1_trans.arrival_time AS arrival1,
+    t2_trans.train_no AS train2,
+    t2_trans.station_name AS restart_station,
+    t2_trans.departure_time AS re_depart,
+    '大理' AS dest,
+    t2_dali.arrival_time AS arrival
+FROM 
+    timetable t1_wuhan
+    JOIN timetable t1_trans ON t1_wuhan.train_no = t1_trans.train_no
+    JOIN timetable t2_trans ON 1=1
+    JOIN timetable t2_dali ON t2_trans.train_no = t2_dali.train_no
+WHERE 
+    t1_wuhan.station_name = '武汉'
+    AND t1_wuhan.departure_time IS NOT NULL
+    AND t1_trans.station_name != '武汉'
+    AND t1_trans.arrival_time IS NOT NULL
+    AND t1_trans.stop_seq > t1_wuhan.stop_seq
+    AND t2_trans.station_name = t1_trans.station_name
+    AND t2_trans.departure_time IS NOT NULL
+    AND t2_dali.station_name = '大理'
+    AND t2_dali.arrival_time IS NOT NULL
+    AND t2_dali.stop_seq > t2_trans.stop_seq
+    AND t2_trans.departure_time > t1_trans.arrival_time
+    AND t1_wuhan.train_no != t2_trans.train_no
+ORDER BY t1_wuhan.train_no, t2_trans.train_no;

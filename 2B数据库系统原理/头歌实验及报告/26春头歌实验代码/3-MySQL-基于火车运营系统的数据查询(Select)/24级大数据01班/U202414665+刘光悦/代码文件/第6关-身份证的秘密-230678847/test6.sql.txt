@@ -1,0 +1,8 @@
+SELECT pid,card_no,pname,gender,dob
+FROM passenger
+WHERE RIGHT(card_no,1) != ELT(MOD(
+    (SELECT v FROM district WHERE ac=LEFT(card_no,6))
+    +SUBSTRING(card_no,7,1)*2+SUBSTRING(card_no,8,1)*1+SUBSTRING(card_no,9,1)*6
+    +SUBSTRING(card_no,10,1)*3+SUBSTRING(card_no,11,1)*7+SUBSTRING(card_no,12,1)*9
+    +SUBSTRING(card_no,13,1)*10+SUBSTRING(card_no,14,1)*5+SUBSTRING(card_no,15,1)*8
+    +SUBSTRING(card_no,16,1)*4+SUBSTRING(card_no,17,1)*2,11)+1,'1','0','X','9','8','7','6','5','4','3','2');

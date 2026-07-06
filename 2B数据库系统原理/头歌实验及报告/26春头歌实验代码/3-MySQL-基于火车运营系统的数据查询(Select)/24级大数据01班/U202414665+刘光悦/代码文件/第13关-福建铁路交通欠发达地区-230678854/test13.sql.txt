@@ -1,0 +1,16 @@
+SELECT s.sname , s.city 
+FROM station s
+WHERE EXISTS (
+    SELECT 1 FROM district d 
+    WHERE d.city = CONCAT(s.city, '市') AND d.prov = '福建省'
+)
+AND EXISTS (
+    SELECT 1 FROM timetable t WHERE t.station_name = s.sname
+)
+AND (
+    SELECT COUNT(DISTINCT t.train_no)
+    FROM timetable t
+    WHERE t.station_name = s.sname
+) = 1
+GROUP BY s.sname, s.city
+ORDER BY MIN(s.sid);

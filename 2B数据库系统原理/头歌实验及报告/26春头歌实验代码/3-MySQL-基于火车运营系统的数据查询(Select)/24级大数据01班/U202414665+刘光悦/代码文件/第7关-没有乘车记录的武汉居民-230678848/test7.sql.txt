@@ -1,0 +1,9 @@
+SELECT pid, card_no, pname, gender, dob
+FROM passenger p
+WHERE card_no LIKE '4201%'
+  AND NOT EXISTS (
+    SELECT 1
+    FROM ride_record r
+    WHERE r.pid = p.pid
+  )
+ORDER BY pid;

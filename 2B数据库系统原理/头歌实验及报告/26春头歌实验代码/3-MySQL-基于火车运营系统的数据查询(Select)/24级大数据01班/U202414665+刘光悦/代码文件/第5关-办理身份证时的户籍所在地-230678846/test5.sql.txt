@@ -1,0 +1,8 @@
+SELECT p.pid, p.card_no, p.pname,
+CASE
+    WHEN d.prov IN ('北京市','上海市','天津市','重庆市') THEN CONCAT(d.prov, d.county)
+    ELSE CONCAT(d.prov, d.city, d.county)
+END AS origin
+FROM passenger p
+JOIN district d ON LEFT(p.card_no,6)=d.ac
+ORDER BY p.pid ASC LIMIT 5;

@@ -1,0 +1,6 @@
+SELECT p.pid, p.card_no, p.pname, p.gender, p.dob
+FROM passenger p
+JOIN ride_record r ON p.pid = r.pid
+GROUP BY p.pid, p.card_no, p.pname, p.gender, p.dob
+HAVING COUNT(*) >= 8
+ORDER BY p.pid;

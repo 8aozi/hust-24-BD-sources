@@ -1,0 +1,40 @@
+-- 切换业务数据库
+use finance1;
+
+-- 先删除同名触发器，避免重复创建报错
+drop trigger if exists before_property_inserted;
+
+-- 修改语句结束符为$$，防止触发器内;提前截断定义
+delimiter $$
+
+-- 创建前置插入触发器：插入property表前校验业务规则
+CREATE TRIGGER before_property_inserted BEFORE INSERT ON property
+FOR EACH ROW  -- 行级触发器，每条插入数据单独校验
+BEGIN
+    -- 定义变量存放报错信息
+    DECLARE msg VARCHAR(50);
+
+    -- 规则1：type=1理财，校验产品id是否存在理财表
+    IF new.pro_type = 1 AND NOT EXISTS (SELECT * FROM finances_product WHERE p_id = new.pro_pif_id) THEN
+        -- CONCAT拼接指定格式报错，NEW代表待插入的新数据行
+        SET msg = CONCAT("finances product #",new.pro_pif_id," not found!");
+        -- 抛出自定义异常，终止插入操作并返回错误文本
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = msg;
+    
+    -- 规则2：type=2保险，校验产品id是否存在保险表
+    ELSEIF new.pro_type = 2 AND NOT EXISTS (SELECT * FROM insurance WHERE i_id = new.pro_pif_id) THEN
+        SET msg = CONCAT("insurance #",new.pro_pif_id," not found!");
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = msg;
+
+    -- 规则3：type=3基金，校验产品id是否存在基金表
+    ELSEIF new.pro_type = 3 AND NOT EXISTS (SELECT * FROM fund WHERE f_id = new.pro_pif_id) THEN
+        SET msg = CONCAT("fund #",new.pro_pif_id," not found!");
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = msg;
+
+    -- 规则4：type不是1/2/3，判定类型非法
+    ELSEIF new.pro_type NOT IN (1,2,3) THEN
+        SET msg = CONCAT("type ",new.pro_type," is illegal!");
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = msg;
+    END IF;
+
+END$$

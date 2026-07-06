@@ -1,0 +1,19 @@
+-- 查询里程第3高的车次信息。如果有并列第3,则依车次排序。
+-- 请用一条SQL语句实现该查询：
+
+
+
+SELECT train_no, start, dest, depart, arrival, day, mileage
+FROM route
+WHERE mileage = (
+    SELECT DISTINCT mileage
+    FROM route
+    ORDER BY mileage DESC
+    LIMIT 2, 1
+)
+ORDER BY train_no;
+
+
+
+
+/*  end  of  your code  */ 

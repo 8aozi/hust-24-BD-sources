@@ -1,0 +1,52 @@
+#pragma once
+#include "execution_defs.h"
+#include "execution_manager.h"
+#include "executor_abstract.h"
+#include "index/ix.h"
+#include "system/sm.h"
+
+class InsertExecutor : public AbstractExecutor {
+   private:
+    TabMeta tab_;
+    std::vector<Value> values_;
+    RmFileHandle *fh_;
+    std::string tab_name_;
+    Rid rid_;
+    SmManager *sm_manager_;
+
+   public:
+    InsertExecutor(SmManager *sm_manager, const std::string &tab_name, std::vector<Value> values, Context *context) {
+        sm_manager_ = sm_manager;
+        tab_ = sm_manager_->db_.get_table(tab_name);
+        values_ = values;
+        tab_name_ = tab_name;
+        if (values.size() != tab_.cols.size()) {
+            throw InvalidValueCountError();
+        }
+        fh_ = sm_manager_->fhs_.at(tab_name).get();
+        context_ = context;
+    };
+
+    std::unique_ptr<RmRecord> Next() override {
+        int record_size = tab_.cols.back().offset + tab_.cols.back().len;
+        auto record = std::make_unique<RmRecord>(record_size);
+        for (size_t i = 0; i < tab_.cols.size(); i++) {
+            auto &col = tab_.cols[i];
+            auto &val = values_[i];
+            val.init_raw(col.len);
+            memcpy(record->data + col.offset, val.raw->data, col.len);
+        }
+        rid_ = fh_->insert_record(record->data, context_);
+        for (size_t i = 0; i < tab_.cols.size(); i++) {
+            if (tab_.cols[i].index) {
+                auto index_name = sm_manager_->get_ix_manager()->get_index_name(tab_name_, i);
+                auto ih = sm_manager_->ihs_.at(index_name).get();
+                ih->insert_entry(record->data + tab_.cols[i].offset, rid_, context_->txn_);
+            }
+        }
+        WriteRecord *wr = new WriteRecord(WType::INSERT_TUPLE, tab_name_, rid_, *record);
+        context_->txn_->AppendWriteRecord(wr);
+        return nullptr;
+    }
+    Rid &rid() override { return rid_; }
+};

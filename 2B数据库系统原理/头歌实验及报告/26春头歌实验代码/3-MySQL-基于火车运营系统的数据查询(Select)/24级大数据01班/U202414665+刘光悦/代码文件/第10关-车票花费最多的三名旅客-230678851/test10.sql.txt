@@ -1,0 +1,18 @@
+-- 查询车票花费最多的三名旅客的信息：编号，姓名，性别，出生日期，车票支出总额。依车票支出从高到低排序，车票总支出命名为expense。不考虑并列第三的情形。
+-- 请用一条SQL语句实现该查询：
+
+
+
+
+
+SELECT p.pid, p.pname, p.gender, p.dob, SUM(r.price) AS expense
+FROM passenger p
+JOIN ride_record r ON p.pid = r.pid
+GROUP BY p.pid, p.pname, p.gender, p.dob
+ORDER BY expense DESC
+LIMIT 3;
+
+
+
+
+/*  end  of  your code  */ 

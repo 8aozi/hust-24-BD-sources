@@ -1,0 +1,10 @@
+SELECT stop_seq,station_name,arrival_time,departure_time
+FROM timetable
+WHERE train_no=(
+    SELECT train_no FROM route WHERE EXISTS(
+        SELECT 1 FROM timetable t1 JOIN station s1 ON t1.station_name=s1.sname WHERE t1.train_no=route.train_no AND s1.city='武汉'
+    ) AND EXISTS(
+        SELECT 1 FROM timetable t2 JOIN station s2 ON t2.station_name=s2.sname WHERE t2.train_no=route.train_no AND s2.city='厦门'
+        AND t2.stop_seq>(SELECT MIN(t3.stop_seq) FROM timetable t3 JOIN station s3 ON t3.station_name=s3.sname WHERE t3.train_no=route.train_no AND s3.city='武汉')
+    ) ORDER BY train_no DESC LIMIT 1
+) ORDER BY stop_seq;
